@@ -12,16 +12,26 @@ function App() {
   const checkBackend = async () => {
     try {
       setLoading(true)
+      setError(null)
       const backendUrl = 'https://matchmind-backend-9f24.onrender.com'
-      const response = await fetch(`${backendUrl}/health`)
+
+      const response = await fetch(`${backendUrl}/health`, {
+        method: 'GET',
+        mode: 'cors',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      })
 
       if (response.ok) {
         const data = await response.json()
         setBackendStatus(data)
+        setError(null)
       } else {
         setError(`Backend respondeu com status ${response.status}`)
       }
     } catch (err) {
+      console.error('Backend error:', err)
       setError(`Erro ao conectar com backend: ${err.message}`)
     } finally {
       setLoading(false)
