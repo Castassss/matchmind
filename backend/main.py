@@ -18,15 +18,11 @@ app = FastAPI(
 )
 
 # CORS Configuration — permite requisições do frontend
+# Phase 0: Permitir todas as origens (depois securizamos)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://localhost:5173",
-        "https://matchmind-pi.vercel.app",
-        "https://matchmind-frontend-*.vercel.app",
-    ],
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
