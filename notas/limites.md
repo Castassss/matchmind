@@ -16,17 +16,20 @@ e 300/min não é limitador a este volume.
 
 ## Gemini — free tier
 
-- A Google **deixou de publicar números fixos de RPM/RPD/TPM** na
-  documentação pública; a página de rate limits remete para o dashboard
-  pessoal em **Google AI Studio → Rate Limits**, porque os valores variam
-  por conta/tier.
+- **Confirmado em 13/09/2026** no dashboard pessoal em Google AI Studio →
+  Rate Limits (a Google já não publica números fixos na documentação
+  pública — variam por conta/tier).
   Fonte: [ai.google.dev/gemini-api/docs/rate-limits](https://ai.google.dev/gemini-api/docs/rate-limits)
-- **Ação pendente (não posso fazer por ti):** entrar em Google AI Studio com
-  a tua conta, abrir a secção de Rate Limits, e anotar aqui os valores reais
-  de RPM / RPD / TPM para o modelo escolhido. É esse número que dimensiona
-  o limitador de ritmo da fase 4.
-- **Modelo predefinido:** por decidir (ver "Decisões a fechar" abaixo) —
-  proposta do planner é o *flash* mais recente disponível no free tier.
+- **Modelo:** `gemini-3-flash`
+- **RPM (pedidos por minuto):** 5
+- **TPM (tokens por minuto):** 250.000
+- **RPD (pedidos por dia):** 20
+
+Estes números são o que dimensiona o limitador de ritmo da fase 4 — com
+RPD=20, o batch noturno de um MVP com ~20 jogos já esbarra no limite diário
+se cada jogo gastar mais de 1 chamada Gemini. A gerir na fase 4 (fila,
+retries, ou considerar plano pago se a análise por jogo precisar de mais
+do que 1 chamada).
 
 ## Supabase — plano Free
 
@@ -43,8 +46,7 @@ que cresce; análises/picks/resultados ficam pequenos.
 ## Decisões a fechar (fase 0)
 
 - [ ] **2 ligas do MVP** — proposta do planner: Liga Portuguesa + La Liga
-- [ ] **Modelo Gemini predefinido** — proposta: o *flash* mais recente
-      disponível no free tier
+- [x] **Modelo Gemini predefinido** — `gemini-3-flash`
 - [ ] **League IDs e season atual** — obter via `GET /leagues` depois de
       teres a chave API-Football ativa (passo 6 da fase 0)
 
@@ -52,16 +54,17 @@ que cresce; análises/picks/resultados ficam pequenos.
 
 Nada disto pode ser feito a partir daqui (exige pagamento e/ou login pessoal):
 
-- [ ] Criar repositório privado `matchmind` no GitHub e fazer o primeiro push
+- [x] Criar repositório privado `matchmind` no GitHub e fazer o primeiro push
       desta estrutura
-- [ ] Conta Supabase — novo projeto
+- [x] Conta Supabase — novo projeto
 - [ ] Conta Render
 - [ ] Conta Vercel
 - [ ] Conta UptimeRobot
-- [ ] Google AI Studio — gerar chave Gemini + anotar rate limits reais (acima)
+- [x] Google AI Studio — gerar chave Gemini + anotar rate limits reais (acima)
 - [ ] API-Football — subscrever plano Pro **depois** de validar a chave Free
       com uma chamada de teste (armadilha já identificada no planner)
 - [ ] Preencher `.env` local a partir de `.env.example` com as chaves reais
+      (Supabase e Gemini já feitos — falta API-Football e o segredo do job)
 - [ ] Replicar as mesmas variáveis em: Render (env vars), Vercel, GitHub Secrets
 - [ ] Fazer uma chamada de teste autenticada ao API-Football e outra ao
       Gemini, do portátil — critério de "pronto" da fase 0
