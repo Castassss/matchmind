@@ -38,7 +38,8 @@ async def root():
     }
 
 
-@app.get("/health")
+# Aceita GET e HEAD para UptimeRobot
+@app.api_route("/health", methods=["GET", "HEAD"])
 async def health():
     """Endpoint para keep-alive (UptimeRobot)"""
     return {"status": "healthy"}
@@ -70,7 +71,6 @@ async def test_api_football():
         }
 
     try:
-        # Usar o endpoint correto do API-Football (não RapidAPI)
         url = "https://v3.football.api-sports.io/leagues"
         headers = {
             "x-apisports-key": api_key
