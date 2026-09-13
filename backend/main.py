@@ -4,6 +4,7 @@ Fase 0: Servidor mínimo
 """
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 import os
 from dotenv import load_dotenv
 
@@ -14,6 +15,20 @@ app = FastAPI(
     title="MatchMind Backend",
     version="0.1.0",
     description="API backend para análise de apostas desportivas com IA"
+)
+
+# CORS Configuration — permite requisições do frontend
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",
+        "http://localhost:5173",
+        "https://matchmind-pi.vercel.app",
+        "https://matchmind-frontend-*.vercel.app",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
