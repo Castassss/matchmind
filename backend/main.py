@@ -1,11 +1,12 @@
 """
-MatchMind Backend — FastAPI
-Fase 0: Servidor mínimo
+MatchMind Backend — FastAPI com teste de API-Football
+Fase 0: Servidor mínimo + integração com API-Football
 """
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import os
+import requests
 from dotenv import load_dotenv
 
 # Carregar variáveis de ambiente
@@ -17,8 +18,7 @@ app = FastAPI(
     description="API backend para análise de apostas desportivas com IA"
 )
 
-# CORS Configuration — permite requisições do frontend
-# Phase 0: Permitir todas as origens (depois securizamos)
+# CORS Configuration
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -40,7 +40,7 @@ async def root():
 
 @app.get("/health")
 async def health():
-    """Endpoint para keep-alive (UptimeRobot vai usar isto)"""
+    """Endpoint para keep-alive (UptimeRobot)"""
     return {"status": "healthy"}
 
 
@@ -50,8 +50,112 @@ async def config():
     return {
         "supabase_url": "configured" if os.getenv("SUPABASE_URL") else "missing",
         "gemini_model": os.getenv("GEMINI_MODEL"),
-        "phase": "0 — não há endpoints de análise ainda"
+        "api_football_key": "configured" if os.getenv("API_FOOTBALL_KEY") else "missing",
+        "phase": "0"
     }
+
+
+@app.get("/test/api-football")
+async def test_api_football():
+    """
+    Testa a conexão com API-Football
+    Retorna as primeiras ligas disponíveis
+    """
+    api_key = os.getenv("API_FOOTBALL_KEY")
+
+    if not api_key:
+        return {
+            "status": "error",
+            "message": "API_FOOTBALL_KEY não configurada"
+        }
+
+    try:
+        # Usar o endpoint correto do API-Football (não RapidAPI)
+        url = "https://v3.football.api-sports.io/leagues"
+        headers = {
+            "x-apisports-key": api_key
+        }
+
+        response = requests.get(url, headers=headers, timeout=5)
+
+        if response.status_code == 200:
+            data = response.json()
+
+            # Extrair primeiras 5 ligas
+            leagues = []
+            if "response" in data:
+                for league_data in data["response"][:5]:
+                    league = league_data.get("league", {})
+                    leagues.append({
+                        "id": league.get("id"),
+                        "name": league.get("name"),
+                        "country": league_data.get("country", {}).get("name")
+                    })
+
+            return {
+                "status": "success",
+                "message": "API-Football conectado com sucesso",
+                "total_leagues": len(data.get("response", [])),
+                "sample_leagues": leagues
+            }
+        else:
+            return {
+                "status": "error",
+                "message": f"API-Football respondeu com status {response.status_code}",
+                "details": response.text[:200]
+            }
+
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": f"Erro ao conectar com API-Football: {str(e)}"
+        }
+
+
+@app.get("/test/gemini")
+async def test_gemini():
+    """
+    Testa a conexão com Google Gemini
+    """
+    api_key = os.getenv("GEMINI_API_KEY")
+    model = os.getenv("GEMINI_MODEL")
+
+    if not api_key or not model:
+        return {
+            "status": "error",
+            "message": "GEMINI_API_KEY ou GEMINI_MODEL não configuradas"
+        }
+
+    try:
+        import google.generativeai as genai
+        genai.configure(api_key=api_key)
+
+        client = genai.GenerativeModel(model)
+        response = client.generate_content("Responde com uma palavra: MatchMind")
+
+        if response.text:
+            return {
+                "status": "success",
+                "message": "Gemini conectado com sucesso",
+                "model": model,
+                "response": response.text[:100]
+            }
+        else:
+            return {
+                "status": "error",
+                "message": "Resposta vazia do Gemini"
+            }
+
+    except ImportError:
+        return {
+            "status": "error",
+            "message": "google-generativeai não instalado"
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": f"Erro ao conectar com Gemini: {str(e)}"
+        }
 
 
 if __name__ == "__main__":
